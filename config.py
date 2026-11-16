@@ -237,12 +237,12 @@ config = {
     },
     'links': {
         'default': {
-            'github': 'https://github.com/ok-oldking/ok-wuthering-waves',
+            'github': 'https://github.com/FLuoXue/ok-wuthering-waves',
             'discord': 'https://discord.gg/vVyCatEBgA',
             'faq': 'https://ok-script.com/ok-ww/'
         },
         'zh_CN': {
-            'github': 'https://github.com/ok-oldking/ok-wuthering-waves',
+            'github': 'https://github.com/FLuoXue/ok-wuthering-waves',
             'discord': 'https://discord.gg/vVyCatEBgA',
             'faq': 'https://ok-script.com/ok-ww',
         },
@@ -291,8 +291,8 @@ config = {
     ], 'scene': ["src.scene.WWScene", "WWScene"],
     'update_pyappify': {
         'to_version': '1.2.3',
-        'zip_url': 'https://github.com/ok-oldking/ok-wuthering-waves/releases/download/v3.5.30/ok-ww-win32.zip',
-        'sha256': '447207edbfb6944beb994347048e155df99775eb18c87dcae54dda125071c94a',
+        'zip_url': 'https://github.com/FLuoXue/ok-wuthering-waves/releases/download/v3.8.4/ok-ww-win32.zip',
+        'sha256': '4dd86fd9cea2aa577c3449e513ffd8521d11a2633ea6a7f805c65a880486abb8',
     }
 
 }
