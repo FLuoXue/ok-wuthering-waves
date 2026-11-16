@@ -33,6 +33,9 @@ jobs:
           [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
           git config --global core.autocrlf false
           git config --global core.eol lf
+          git config --global core.longpaths true
+          git config --system core.longpaths true
+          New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem' -Name 'LongPathsEnabled' -Value 1 -PropertyType DWord -Force | Out-Null
           git config --global user.email "ok-oldking@users.noreply.github.com"
           git config --global user.name "ok-oldking"
 
@@ -99,72 +102,47 @@ jobs:
           }
 
   synchronize:
-    name: 2 · Synchronize repositories
+    name: 2 · Resolve release metadata
     needs: validate
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     outputs:
-      is_release: ${{ steps.release_version.outputs.is_release }}
-      start_tag: ${{ steps.sync.outputs.start_tag }}
-      end_tag: ${{ steps.sync.outputs.end_tag }}
-      changes: ${{ steps.sync.outputs.changes_with_asterisk }}
+      is_release: ${{ steps.meta.outputs.is_release }}
+      start_tag: ${{ steps.meta.outputs.start_tag }}
+      end_tag: ${{ steps.meta.outputs.end_tag }}
+      changes: ${{ steps.meta.outputs.changes }}
 
     steps:
-      - name: Configure runner
-        shell: pwsh
-        run: |
-          [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-          git config --global core.autocrlf false
-          git config --global core.eol lf
-          git config --global user.email "ok-oldking@users.noreply.github.com"
-          git config --global user.name "ok-oldking"
-
       - name: Check out source
         uses: actions/checkout@v4
         with:
-          lfs: true
           fetch-depth: 0
-          persist-credentials: false
 
-      - name: Set up Python ${{ env.PYTHON_VERSION }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: pip
-          cache-dependency-path: |
-            requirements.txt
-            pyproject.toml
-
-      - name: Install dependencies
-        run: python .github/scripts/install_dependencies.py
-
-      - name: Prepare release requirements
-        env:
-          RELEASE_TAG: ${{ github.ref_name }}
-        run: python -m ok.update.inline_ok_requirements --tag "$env:RELEASE_TAG"
-
-      - name: Check release version
-        id: release_version
-        if: env.BUILD_EXE == 'true'
-        shell: pwsh
+      - name: Resolve version metadata locally
+        id: meta
+        shell: bash
         env:
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
-          $isRelease = $env:RELEASE_TAG -match '^v?\d+\.\d+\.\d+$'
-          "is_release=$($isRelease.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
-          Write-Host "Release version: $isRelease"
-
-      - name: Synchronize update repositories
-        id: sync
-        uses: ok-oldking/partial-sync-repo@master
-        with:
-          repos: |
-            https://cnb:${{ secrets.CNB_TOKEN }}@cnb.cool/ok-oldking/ok-wuthering-waves.git
-            https://cnb:${{ secrets.CNB_TOKEN }}@cnb.cool/ok-oldking/ok-ww-update2.git
-            https://ok-oldking:${{ secrets.OK_GH }}@github.com/ok-oldking/ok-ww-update
-          sync_list: 'deploy.txt'
-          tag: ${{ github.ref_name }}
-          gitignore_file: '.update_repo_gitignore'
-          show_author: true
+          set -euo pipefail
+          if [[ "$RELEASE_TAG" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "is_release=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_release=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "end_tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
+          PREV_TAG=$(git tag --sort=-v:refname --merged HEAD | grep -v "^${RELEASE_TAG}$" | head -n1 || true)
+          if [ -n "$PREV_TAG" ]; then
+            echo "start_tag=$PREV_TAG" >> "$GITHUB_OUTPUT"
+            CHANGES=$(git log --pretty=format:'* %s (%an)' "$PREV_TAG..$RELEASE_TAG" | head -n 50)
+          else
+            echo "start_tag=initial" >> "$GITHUB_OUTPUT"
+            CHANGES=$(git log --pretty=format:'* %s (%an)' -n 20 HEAD)
+          fi
+          {
+            echo 'changes<<EOF'
+            echo "$CHANGES"
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
 
   package:
     name: 3 · Build portable packages
@@ -180,6 +158,9 @@ jobs:
           [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
           git config --global core.autocrlf false
           git config --global core.eol lf
+          git config --global core.longpaths true
+          git config --system core.longpaths true
+          New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem' -Name 'LongPathsEnabled' -Value 1 -PropertyType DWord -Force | Out-Null
           git config --global user.email "ok-oldking@users.noreply.github.com"
           git config --global user.name "ok-oldking"
 
@@ -429,13 +410,6 @@ jobs:
               See the [source installation guide](https://github.com/ok-oldking/ok-wuthering-waves/blob/master/docs/development/contributing.md).
           draft: false
           prerelease: ${{ needs.synchronize.outputs.is_release != 'true' }}
-          files: pyappify_dist/*
-
-      - name: Trigger distribution workflows
-        if: needs.synchronize.outputs.is_release == 'true'
-        shell: bash
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh workflow run --repo "$GITHUB_REPOSITORY" mirrorchyan_uploading
-          gh workflow run --repo "$GITHUB_REPOSITORY" mirrorchyan_release_note
+          files: |
+            pyappify_dist/*.zip
+            pyappify_dist/*sha256.txt

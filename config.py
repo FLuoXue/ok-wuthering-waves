@@ -262,10 +262,10 @@ config = {
     'gui_title': 'OK-WW',  # Optional
     'game_name': 'Wuthering Waves',
     # 'coco_feature_folder': get_path(__file__, 'assets/coco_feature'),  # required if using feature detection
-    'log_file': 'logs/ok-ww.log',  # Optional, auto rotating every day
-    'error_log_file': 'logs/ok-ww_error.log',
-    'launcher_log_file': 'logs/launcher.log',
-    'launcher_error_log_file': 'logs/launcher_error.log',
+    'log_file': 'logs/wuwa-auto.log',  # Optional, auto rotating every day
+    'error_log_file': 'logs/wuwa-auto_error.log',
+    'launcher_log_file': 'logs/wuwa-auto-launcher.log',
+    'launcher_error_log_file': 'logs/wuwa-auto-launcher_error.log',
     'version': version,
     'onetime_tasks': [  # tasks to execute
         ["src.task.DailyTask", "DailyTask"],
@@ -291,8 +291,8 @@ config = {
     ], 'scene': ["src.scene.WWScene", "WWScene"],
     'update_pyappify': {
         'to_version': '1.2.3',
-        'zip_url': 'https://github.com/FLuoXue/ok-wuthering-waves/releases/download/v3.8.4/ok-ww-win32.zip',
-        'sha256': '4dd86fd9cea2aa577c3449e513ffd8521d11a2633ea6a7f805c65a880486abb8',
+        'zip_url': 'https://github.com/FLuoXue/ok-wuthering-waves/releases/download/v3.8.5/wuwa-auto-win32.zip',
+        'sha256': 'f9c347570c471c2cfce98a58e02a6fb799814df36021e64fbf6849ae57b4a095',
     }
 
 }
