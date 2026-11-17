@@ -6,7 +6,7 @@ keep_releases: 30
 
 profiles:
   - name: "China"
-    git_url: "https://github.com/FLuoXue/ok-wuthering-waves.git"
+    git_url: "https://github.com/FLuoXue/ok-ww-update.git"
     admin: true
     main_script: "main.py"
     requires_python: "3.12"
@@ -17,7 +17,7 @@ profiles:
     # PYTHONPATH: "your/default/path" # Optional, will be "" if missing
 
   - name: "Global"
-    git_url: "https://github.com/FLuoXue/ok-wuthering-waves.git"
+    git_url: "https://github.com/FLuoXue/ok-ww-update.git"
     main_script: "main.py"
     requirements: "requirements.txt"
 

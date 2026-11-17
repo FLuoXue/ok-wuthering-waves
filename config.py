@@ -291,7 +291,7 @@ config = {
     ], 'scene': ["src.scene.WWScene", "WWScene"],
     'update_pyappify': {
         'to_version': '1.2.3',
-        'zip_url': 'https://github.com/FLuoXue/ok-wuthering-waves/releases/download/v3.8.5/wuwa-auto-win32.zip',
+        'zip_url': 'https://github.com/FLuoXue/ok-wuthering-waves/releases/download/v3.8.6/wuwa-auto-win32.zip',
         'sha256': 'f9c347570c471c2cfce98a58e02a6fb799814df36021e64fbf6849ae57b4a095',
     }
 

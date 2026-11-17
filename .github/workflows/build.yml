@@ -144,6 +144,35 @@ jobs:
             echo 'EOF'
           } >> "$GITHUB_OUTPUT"
 
+      - name: Sync slim update repo
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+          UPDATE_TOKEN: ${{ secrets.UPDATE_REPO_TOKEN }}
+        run: |
+          set -euo pipefail
+          STAGE="$RUNNER_TEMP/ok-ww-update"
+          rm -rf "$STAGE"
+          mkdir -p "$STAGE"
+          while IFS= read -r item; do
+            [ -z "$item" ] && continue
+            case "$item" in \#*) continue ;; esac
+            if [ -e "$item" ]; then
+              mkdir -p "$STAGE/$(dirname "$item")"
+              cp -a "$item" "$STAGE/$item"
+            fi
+          done < deploy.txt
+          cd "$STAGE"
+          git init -q -b master
+          git config user.name "FLuoXue"
+          git config user.email "FLuoXue@users.noreply.github.com"
+          git add -A
+          git commit -q -m "sync $RELEASE_TAG"
+          git tag -a "$RELEASE_TAG" -m "$RELEASE_TAG"
+          git remote add origin "https://x-access-token:${UPDATE_TOKEN}@github.com/FLuoXue/ok-ww-update.git"
+          git push -q -f origin master "$RELEASE_TAG"
+          echo "Slim update repo synced at $RELEASE_TAG"
+
   package:
     name: 3 · Build portable packages
     needs: synchronize
@@ -410,6 +439,4 @@ jobs:
               See the [source installation guide](https://github.com/ok-oldking/ok-wuthering-waves/blob/master/docs/development/contributing.md).
           draft: false
           prerelease: ${{ needs.synchronize.outputs.is_release != 'true' }}
-          files: |
-            pyappify_dist/*.zip
-            pyappify_dist/*sha256.txt
+          files: pyappify_dist/*
